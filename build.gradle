@@ -1,0 +1,25 @@
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'application'
+
+mainClassName = "com.miatharifa.javachallenge2017.Main"
+
+sourceCompatibility = 8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile group: 'io.undertow', name: 'undertow-websockets-jsr', version: '1.4.20.Final'
+}
+
+run {
+    def authToken = project.getProperty("auth")
+    if (authToken == null ) {
+        println "start the app using the -Pauth=miathari:9osa8erhjgf9a4w8 settings"
+    } else {
+        args += authToken
+    }
+}
