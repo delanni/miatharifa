@@ -1,7 +1,6 @@
 package com.miatharifa.javachallenge2017;
 
-import com.miatharifa.javachallenge2017.client.ClientEndpoint;
-import com.miatharifa.javachallenge2017.game.GameModel;
+import com.miatharifa.javachallenge2017.game.PlayerModel;
 
 import java.net.URI;
 import java.util.Arrays;
@@ -36,11 +35,9 @@ public class Main {
 
             ClientEndpointConfig config = ClientEndpointConfig.Builder.create().configurator(configurator).build();
 
-            GameModel gameModel = new GameModel();
+            PlayerModel playerModel = new PlayerModel();
 
-            ClientEndpoint clientEndpoint = new ClientEndpoint(gameModel::initialize, gameModel::updateState);
-
-            webSocket.connectToServer(clientEndpoint, config, URI.create("ws://javachallenge.loxon.hu:8080/JavaChallenge2017/websocket"));
+            webSocket.connectToServer(playerModel, config, URI.create("ws://javachallenge.loxon.hu:8080/JavaChallenge2017/websocket"));
 
             System.out.println("Sleeping");
 

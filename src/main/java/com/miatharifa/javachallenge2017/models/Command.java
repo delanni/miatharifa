@@ -1,7 +1,5 @@
 
-package com.miatharifa.javachallenge2017.data;
-
-import java.util.List;
+package com.miatharifa.javachallenge2017.models;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;

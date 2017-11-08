@@ -1,4 +1,4 @@
-package com.miatharifa.javachallenge2017.data;
+package com.miatharifa.javachallenge2017.models;
 
 import java.util.List;
 import com.google.gson.annotations.Expose;
