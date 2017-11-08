@@ -13,13 +13,14 @@ repositories {
 
 dependencies {
     compile group: 'io.undertow', name: 'undertow-websockets-jsr', version: '1.4.20.Final'
+    compile 'com.google.code.gson:gson:2.8.2'
 }
 
 run {
-    def authToken = project.getProperty("auth")
-    if (authToken == null ) {
-        println "start the app using the -Pauth=miathari:9osa8erhjgf9a4w8 settings"
-    } else {
+    if (project.hasProperty("token")) {
+        def authToken = project.getProperty("token")
         args += authToken
+    } else {
+        println "start the app using the -Ptoken=9osa8erhjgf9a4w8"
     }
 }
