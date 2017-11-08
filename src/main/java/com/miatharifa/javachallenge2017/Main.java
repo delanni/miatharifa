@@ -13,6 +13,7 @@ import javax.websocket.HandshakeResponse;
 import javax.websocket.WebSocketContainer;
 import javax.xml.bind.DatatypeConverter;
 
+import static com.miatharifa.javachallenge2017.game.ParseState.KILLED;
 
 public class Main {
     public static void main(String[] args) {
@@ -41,7 +42,7 @@ public class Main {
 
             System.out.println("Sleeping");
 
-            while(true) {
+            while(playerModel.state != KILLED) {
                 Thread.sleep(1000);
             }
 

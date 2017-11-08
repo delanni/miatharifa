@@ -7,15 +7,10 @@ import com.miatharifa.javachallenge2017.models.GameState;
 
 import javax.websocket.*;
 
-enum ParseState {
-    WAIT_FOR_GAME_DESCRIPTION,
-    WAIT_FOR_GAME_STATE
-}
-
 abstract class PlayerClient  extends Endpoint implements MessageHandler.Whole<String>{
     private Session session;
     private Gson gson;
-    private ParseState state = ParseState.WAIT_FOR_GAME_DESCRIPTION;
+    public ParseState state = ParseState.WAIT_FOR_GAME_DESCRIPTION;
 
     @Override
     public void onOpen(Session session, EndpointConfig config) {
@@ -79,6 +74,7 @@ public class PlayerModel extends PlayerClient {
     }
 
     public void kill(){
+        this.state = ParseState.KILLED;
         System.out.println("Stopped.");
     }
 }
