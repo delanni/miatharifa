@@ -22,5 +22,8 @@ public class PlanetState {
     @Expose
     public Long planetID;
 
-
+    @Override
+    public String toString() {
+        return String.format("{owner=%s, ownershipratio=%s, id=%s}", owner, ownershipRatio, planetID);
+    }
 }

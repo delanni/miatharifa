@@ -70,7 +70,7 @@ public class PlayerModel extends PlayerClient {
 
     public void updateState(GameState gameStateUpdate) {
         System.out.println("Got update for time:" + gameStateUpdate.timeElapsed);
-
+        System.out.println(gameStateUpdate);
         this.gameModel.updateAndDiff(gameStateUpdate);
     }
 

@@ -49,4 +49,8 @@ public class Planet {
     public String getOwner() {
         return owner;
     }
+
+    public double getDistance(Planet other) {
+        return Math.sqrt(Math.pow(other.x - this.x, 2 ) + Math.pow(other.y - this.y, 2));
+    }
 }
