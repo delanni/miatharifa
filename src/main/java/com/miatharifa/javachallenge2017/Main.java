@@ -1,6 +1,7 @@
 package com.miatharifa.javachallenge2017;
 
 import com.miatharifa.javachallenge2017.game.PlayerModel;
+import com.miatharifa.javachallenge2017.players.DumbPlayer;
 
 import java.net.URI;
 import java.util.Arrays;
@@ -36,7 +37,7 @@ public class Main {
 
             ClientEndpointConfig config = ClientEndpointConfig.Builder.create().configurator(configurator).build();
 
-            PlayerModel playerModel = new PlayerModel();
+            PlayerModel playerModel = new DumbPlayer();
 
             webSocket.connectToServer(playerModel, config, URI.create("ws://javachallenge.loxon.hu:8080/JavaChallenge2017/websocket"));
 
