@@ -12,6 +12,11 @@ import java.util.logging.Logger;
 
 public class DumbPlayer extends PlayerModel {
     private static final Logger logger = Logger.getLogger(DumbPlayer.class.toString());
+
+    public DumbPlayer(boolean withUi) {
+        super(withUi);
+    }
+
     @Override public void updateState(GameState gameStateUpdate) {
         super.updateState(gameStateUpdate);
 

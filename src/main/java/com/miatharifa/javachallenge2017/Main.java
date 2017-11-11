@@ -1,6 +1,8 @@
 package com.miatharifa.javachallenge2017;
 
 import com.miatharifa.javachallenge2017.game.PlayerModel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.miatharifa.javachallenge2017.players.DumbPlayer;
 
 import java.net.URI;
@@ -17,6 +19,7 @@ import javax.xml.bind.DatatypeConverter;
 import static com.miatharifa.javachallenge2017.game.ParseState.KILLED;
 
 public class Main {
+    private static final Logger log = LoggerFactory.getLogger(Main.class);
     public static void main(String[] args) {
         try {
             String token = args[0];
@@ -37,11 +40,14 @@ public class Main {
 
             ClientEndpointConfig config = ClientEndpointConfig.Builder.create().configurator(configurator).build();
 
-            PlayerModel playerModel = new DumbPlayer();
+            boolean withUi = false;
+            if (args.length > 1)
+                withUi = Boolean.valueOf(args[1]);
+            PlayerModel playerModel = new DumbPlayer(withUi);
 
             webSocket.connectToServer(playerModel, config, URI.create("ws://javachallenge.loxon.hu:8080/JavaChallenge2017/websocket"));
 
-            System.out.println("Sleeping");
+            log.info("Sleeping");
 
             while(playerModel.state != KILLED) {
                 Thread.sleep(1000);

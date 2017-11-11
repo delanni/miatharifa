@@ -1,15 +1,18 @@
 package com.miatharifa.javachallenge2017.game;
 
 import com.google.gson.Gson;
+import com.miatharifa.javachallenge2017.Main;
 import com.miatharifa.javachallenge2017.models.Command;
 import com.miatharifa.javachallenge2017.models.GameDescription;
 import com.miatharifa.javachallenge2017.models.GameState;
 
 import javax.websocket.*;
 
+import com.miatharifa.javachallenge2017.ui.Ui;
+
 abstract class PlayerClient  extends Endpoint implements MessageHandler.Whole<String>{
     private Session session;
-    private Gson gson;
+    protected Gson gson;
     public ParseState state = ParseState.WAIT_FOR_GAME_DESCRIPTION;
 
     @Override
@@ -58,20 +61,27 @@ abstract class PlayerClient  extends Endpoint implements MessageHandler.Whole<St
 public class PlayerModel extends PlayerClient {
     public static final String NAME = "miathari";
     protected final GameModel gameModel;
-
-    public PlayerModel(){
+    protected final boolean withUi;
+    public PlayerModel(boolean withUi){
         this.gameModel = new GameModel();
+        this.withUi = withUi;
     }
 
     public void initialize(GameDescription description) {
         System.out.println("Initialized");
         this.gameModel.initialize(description);
+        if(withUi) {
+            Ui.init(description);
+        }
     }
 
     public void updateState(GameState gameStateUpdate) {
         System.out.println("Got update for time:" + gameStateUpdate.timeElapsed);
         System.out.println(gameStateUpdate);
         this.gameModel.updateAndDiff(gameStateUpdate);
+        if(withUi) {
+            Ui.refresh(gameStateUpdate);
+        }
     }
 
     public void kill(){
