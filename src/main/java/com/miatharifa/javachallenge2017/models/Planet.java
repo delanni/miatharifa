@@ -29,7 +29,28 @@ public class Planet {
     public void setState(PlanetState state) {
         this.movingArmies = state.movingArmies;
         this.stationedArmies = state.stationedArmies;
+        for (StationedArmy army : stationedArmies) army.planet = this;
         this.ownershipRatio = state.ownershipRatio;
         this.owner = state.owner;
+    }
+
+    public List<MovingArmy> getMovingArmies() {
+        return movingArmies;
+    }
+
+    public List<StationedArmy> getStationedArmies() {
+        return stationedArmies;
+    }
+
+    public Double getOwnershipRatio() {
+        return ownershipRatio;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public double getDistance(Planet other) {
+        return Math.sqrt(Math.pow(other.x - this.x, 2 ) + Math.pow(other.y - this.y, 2));
     }
 }

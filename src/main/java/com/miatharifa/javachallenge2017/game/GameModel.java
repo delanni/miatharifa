@@ -17,8 +17,10 @@ public class GameModel {
     private Double battleSpeed;
     private Double captureSpeed;
     private Double unitCreateSpeed;
+
     private Long gameLength;
     private Double battleExponent;
+    private Long minMovableArmySize;
     private Double planetExponent;
 
     private Long timeElapsed;
@@ -42,6 +44,7 @@ public class GameModel {
         this.captureSpeed = description.captureSpeed;
         this.unitCreateSpeed = description.unitCreateSpeed;
         this.battleExponent = description.battleExponent;
+        this.minMovableArmySize = description.minMovableArmySize;
         this.planetExponent = description.planetExponent;
     }
 
@@ -52,5 +55,69 @@ public class GameModel {
         this.remainingPlayers = gameStateUpdate.remainingPlayers;
         this.standings = gameStateUpdate.standings;
         return 0.0;
+    }
+
+    public HashMap<String, Player> getPlayers() {
+        return players;
+    }
+
+    public GameMap getMap() {
+        return map;
+    }
+
+    public Long getBroadcastSchedule() {
+        return broadcastSchedule;
+    }
+
+    public Long getCommandSchedule() {
+        return commandSchedule;
+    }
+
+    public Long getInternalSchedule() {
+        return internalSchedule;
+    }
+
+    public Double getBattleSpeed() {
+        return battleSpeed;
+    }
+
+    public Double getCaptureSpeed() {
+        return captureSpeed;
+    }
+
+    public Double getUnitCreateSpeed() {
+        return unitCreateSpeed;
+    }
+
+    public Long getGameLength() {
+        return gameLength;
+    }
+
+    public Double getBattleExponent() {
+        return battleExponent;
+    }
+
+    public Double getPlanetExponent() {
+        return planetExponent;
+    }
+
+    public Long getTimeElapsed() {
+        return timeElapsed;
+    }
+
+    public String getGameStatus() {
+        return gameStatus;
+    }
+
+    public Long getRemainingPlayers() {
+        return remainingPlayers;
+    }
+
+    public List<Standing> getStandings() {
+        return standings;
+    }
+
+    public Long getMinMovableArmySize() {
+        return minMovableArmySize;
     }
 }

@@ -13,4 +13,5 @@ public class StationedArmy {
     @Expose
     public Long size;
 
+    public Planet planet;
 }

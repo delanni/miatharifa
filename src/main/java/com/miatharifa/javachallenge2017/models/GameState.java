@@ -22,4 +22,21 @@ public class GameState {
     @Expose
     public List<Standing> standings = null;
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        for (PlanetState planetState : planetStates) {
+            sb.append(planetState);
+            sb.append(";");
+        }
+        sb.append("!");
+        sb.append(gameStatus);
+        sb.append("!");
+        for (Standing standing : standings) {
+            sb.append(standing);
+            sb.append(";");
+        }
+        return sb.toString();
+    }
+
 }

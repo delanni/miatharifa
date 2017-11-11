@@ -41,7 +41,7 @@ abstract class PlayerClient  extends Endpoint implements MessageHandler.Whole<St
         this.kill();
     }
 
-    private void sendMessage(Command command) {
+    protected void sendMessage(Command command) {
         try {
             session.getAsyncRemote().sendText(this.gson.toJson(command, Command.class));
         } catch (Exception e ){
@@ -56,7 +56,8 @@ abstract class PlayerClient  extends Endpoint implements MessageHandler.Whole<St
 }
 
 public class PlayerModel extends PlayerClient {
-    private final GameModel gameModel;
+    public static final String NAME = "miathari";
+    protected final GameModel gameModel;
 
     public PlayerModel(){
         this.gameModel = new GameModel();
@@ -69,7 +70,7 @@ public class PlayerModel extends PlayerClient {
 
     public void updateState(GameState gameStateUpdate) {
         System.out.println("Got update for time:" + gameStateUpdate.timeElapsed);
-
+        System.out.println(gameStateUpdate);
         this.gameModel.updateAndDiff(gameStateUpdate);
     }
 
