@@ -7,6 +7,10 @@ import java.util.logging.Logger;
 public class CostBasedPlayer extends PlayerModel {
     private static final Logger logger = Logger.getLogger(DumbPlayer.class.toString());
 
+    public CostBasedPlayer(boolean withUi) {
+        super(withUi);
+    }
+
     // distanceadvisor
     // threatadvisor - planet
     // threatadvisor - surroundings

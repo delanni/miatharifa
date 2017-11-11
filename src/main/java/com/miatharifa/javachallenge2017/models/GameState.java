@@ -1,6 +1,9 @@
 package com.miatharifa.javachallenge2017.models;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
@@ -39,4 +42,8 @@ public class GameState {
         return sb.toString();
     }
 
+    public Map<Long, PlanetState> getPlanetStatesMap() {
+        Map<Long, PlanetState> map = planetStates.stream().collect(Collectors.toMap(item -> item.planetID, item -> item));
+        return map;
+    }
 }
