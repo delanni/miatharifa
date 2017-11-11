@@ -6,6 +6,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.Arc2D;
+import java.awt.geom.Ellipse2D;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +36,6 @@ class PaintPanel extends JPanel {
 	private final int height;
 	private final int fontHeightInPixel = 28;
 	private final int marginFromXEndInPixels = 200;
-	private long paintStartTime;
 	private int lineOffset = 0;
 	private Graphics2D imageForStatistics;
 
@@ -48,9 +49,15 @@ class PaintPanel extends JPanel {
 
 	}
 
+    private Color planetColor(String owner) {
+        if (owner == null)
+            return ISLAND_SAND;
+        else
+            return colors.get(owner);
+    }
+
 	@Override
 	public void paintComponent(Graphics g) {
-		this.paintStartTime = System.currentTimeMillis();
 		super.paintComponent(g);
 		Graphics2D g2d = (Graphics2D) g;
 
@@ -81,19 +88,34 @@ class PaintPanel extends JPanel {
 
 			// Draw planets
 			description.planets.forEach(planet -> {
-                g2d.setColor(ISLAND_SAND);
                 PlanetState state =  gameState.getPlanetStatesMap().get(planet.planetID);
-				g2d.translate(planet.x, height - planet.y);
-				g2d.fillOval(
-						(int) (-planet.radius),
-						(int) (-planet.radius),
-						(int) (planet.radius * 2),
-						(int) (planet.radius * 2));
+
+                g2d.setColor(Color.BLACK);
+                g2d.translate(planet.x, height - planet.y);
+                Shape circle = new Ellipse2D.Double(
+                        (int) (-planet.radius),
+                        (int) (-planet.radius),
+                        (int) (planet.radius * 2),
+                        (int) (planet.radius * 2));
+                g2d.draw(circle);
                 g2d.translate(-planet.x, -(height - planet.y));
+
+                g2d.setColor(planetColor(state.owner));
+                Arc2D arc = new Arc2D.Double(
+                        planet.x - planet.radius,
+                        height - planet.y - planet.radius,
+                        planet.radius * 2,
+                        planet.radius * 2,
+                        90,
+                        state.ownershipRatio*360,
+                        Arc2D.PIE);
+                g2d.fill(arc);
 
                 g2d.setColor(Color.BLACK);
                 g2d.drawString(planet.planetID.toString(), planet.x, height - planet.y);
-                g2d.drawString(state.owner + "[" + state.ownershipRatio + "]", planet.x, height - planet.y+15);
+                g2d.drawString(state.owner + "[" + String.format("%.2f", state.ownershipRatio) + "]",
+                        planet.x,
+                        height - planet.y + 15);
                 String armies = StringUtils.join(
                         state.stationedArmies.stream()
                         .map(s->s.owner + "[" + s.size + "]")
@@ -102,70 +124,6 @@ class PaintPanel extends JPanel {
                 g2d.drawString(armies, planet.x, height - planet.y+30);
 			});
 
-//			// Draw ships
-//			session.myShips.forEach(ship -> {
-//				drawImage.translate(ship.position.getX(), height - ship.position.getY());
-//				drawImage.rotate(Math.toRadians(90 - ship.rotation));
-//
-//				if(!ship.usingExtendedSonar){
-//					drawImage.setColor(SONAR_SEAWEED);
-//					drawImage.fillOval(
-//							(-session.mapConfiguration.sonarRange),
-//							(-session.mapConfiguration.sonarRange),
-//							(session.mapConfiguration.sonarRange * 2),
-//							(session.mapConfiguration.sonarRange * 2));
-//				} else {
-//					drawImage.setColor(EXTENDED_SONAR_SPONGEBOB);
-//					drawImage.fillOval(
-//							(-session.mapConfiguration.extendedSonarRange),
-//							(-session.mapConfiguration.extendedSonarRange),
-//							(session.mapConfiguration.extendedSonarRange * 2),
-//							(session.mapConfiguration.extendedSonarRange * 2));
-//				}
-//
-//				drawImage.setColor(MIATHARIFA_COLOR);
-//				drawImage.fillOval(
-//						(int) (-ship.r),
-//						(int) (-ship.r),
-//						(int) (ship.r * 2),
-//						(int) (ship.r * 2));
-//				drawImage.setColor(GRASS_GREEN);
-//				drawImage.fillPolygon(makeTriangleX(ship.r), makeTriangleY(ship.r), 3);
-//				drawImage.rotate(Math.toRadians(-(90 - ship.rotation)));
-//				drawImage.translate(-ship.position.getX(), -(height - ship.position.getY()));
-//
-//				drawImage.setColor(MIATHARIFA_COLOR);
-//				if (!ship.futurePositions.isEmpty()) {
-//					ship.futurePositions.forEach(p -> drawImage.fillOval((int) p.x - 2, (int) (height - (p.y - 2)), 4, 4));
-//				}
-//				if (!ship.futureTorpedoPositions.isEmpty()) {
-//					ship.futureTorpedoPositions.forEach(p -> drawImage.fillOval((int) p.x - 2, (int) (height - (p.y - 2)), 4, 4));
-//				}
-//			});
-//
-//			// Draw line for ship's next position
-//            commands.forEach(
-//                    command -> {
-//                        g2d.setColor(Color.BLACK);
-//                        Planet planetFrom = description.planetsMap().get(command.moveFrom);
-//                        Planet planetTo = description.planetsMap().get(command.moveTo);
-//                        g2d.drawLine(
-//                                toIntExact(planetFrom.x),
-//                                toIntExact(height - planetFrom.y),
-//                                toIntExact(planetTo.x),
-//                                toIntExact(height - planetTo.y));
-//
-//
-////                        // Draw travelling units
-////                        g2d.setColor(LILA_TRAVELLING_UNIT);
-////                        double fulltime = description.fullTimeToTravel(planetFrom, planetTo);
-////                        g2d.translate(description.mapSizeX, height - ship.position.getY());
-////				        g2d.fillOval(
-////						    (-session.mapConfiguration.torpedoExplosionRadius),
-////						    (-session.mapConfiguration.torpedoExplosionRadius),
-////						    (session.mapConfiguration.torpedoExplosionRadius * 2),
-////						    (session.mapConfiguration.torpedoExplosionRadius * 2));
-//                    });
 
 			// Draw state of planets
             gameState.planetStates.forEach(planetState -> {
@@ -184,41 +142,7 @@ class PaintPanel extends JPanel {
                     g2d.drawString(movingArmy.size.toString(), 0, 0);
                     g2d.translate(-x, -(height - y));
                 });
-//				double x = planetState.movingArmies;
-//				double y = torpedo.position.getY();
-//				drawImage.translate(x, height - y);
-//
-//				drawImage.setColor(LILA_TRAVELLING_UNIT);
-//				drawImage.fillOval(
-//						(-session.mapConfiguration.torpedoExplosionRadius),
-//						(-session.mapConfiguration.torpedoExplosionRadius),
-//						(session.mapConfiguration.torpedoExplosionRadius * 2),
-//						(session.mapConfiguration.torpedoExplosionRadius * 2));
-//
-//				drawImage.setColor(FOS_LILA);
-//				drawImage.fillOval(
-//						-5,
-//						-5,
-//						10,
-//						10);
-//				drawImage.translate(-x, -(height - y));
 			});
-//
-//			session.map.enemyShips.forEach(ship -> {
-//				drawImage.translate(ship.position.getX(), height - ship.position.getY());
-//				drawImage.rotate(Math.toRadians(90 - ship.rotation));
-//
-//				drawImage.setColor(ENEMY_SHIP);
-//				drawImage.fillOval(
-//						(int) (-ship.r),
-//						(int) (-ship.r),
-//						(int) (ship.r * 2),
-//						(int) (ship.r * 2));
-//				drawImage.setColor(GRASS_GREEN);
-//				drawImage.fillPolygon(makeTriangleX(ship.r), makeTriangleY(ship.r), 3);
-//				drawImage.rotate(Math.toRadians(-(90 - ship.rotation)));
-//				drawImage.translate(-ship.position.getX(), -(height - ship.position.getY()));
-//			});
 
 			// Draw Statistics
 			drawStatistics(g2d);
