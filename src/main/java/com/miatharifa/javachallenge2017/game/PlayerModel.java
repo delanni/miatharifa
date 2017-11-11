@@ -14,6 +14,11 @@ abstract class PlayerClient  extends Endpoint implements MessageHandler.Whole<St
     private Session session;
     protected Gson gson;
     public ParseState state = ParseState.WAIT_FOR_GAME_DESCRIPTION;
+    final boolean withUi;
+
+    PlayerClient(boolean withUi){
+        this.withUi = withUi;
+    }
 
     @Override
     public void onOpen(Session session, EndpointConfig config) {
@@ -47,6 +52,9 @@ abstract class PlayerClient  extends Endpoint implements MessageHandler.Whole<St
     protected void sendMessage(Command command) {
         try {
             session.getAsyncRemote().sendText(this.gson.toJson(command, Command.class));
+            if(withUi) {
+                Ui.sendCommand(command);
+            }
         } catch (Exception e ){
             System.err.println("Exception while sending command " + command);
             e.printStackTrace();
@@ -61,10 +69,9 @@ abstract class PlayerClient  extends Endpoint implements MessageHandler.Whole<St
 public class PlayerModel extends PlayerClient {
     public static final String NAME = "miathari";
     protected final GameModel gameModel;
-    protected final boolean withUi;
     public PlayerModel(boolean withUi){
+        super(withUi);
         this.gameModel = new GameModel();
-        this.withUi = withUi;
     }
 
     public void initialize(GameDescription description) {

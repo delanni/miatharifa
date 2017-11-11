@@ -1,6 +1,7 @@
 package com.miatharifa.javachallenge2017.ui;
 
 import com.miatharifa.javachallenge2017.game.GameModel;
+import com.miatharifa.javachallenge2017.models.Command;
 import com.miatharifa.javachallenge2017.models.GameDescription;
 import com.miatharifa.javachallenge2017.models.GameState;
 import org.slf4j.Logger;
@@ -40,6 +41,11 @@ public class Ui {
             paintPanel.init(description);
             repaint();
         }
+
+        void sendCommand(Command command)  {
+            paintPanel.sendCommand(command);
+            repaint();
+        }
     }
 
     public static void refresh(GameState gameState) {
@@ -68,5 +74,11 @@ public class Ui {
         }
         frame.init(description);
         started = true;
+    }
+
+
+    public static void sendCommand(Command command) {
+        frame.sendCommand(command);
+        log.info("UI command sent");
     }
 }
