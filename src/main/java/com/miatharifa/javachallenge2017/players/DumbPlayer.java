@@ -1,5 +1,7 @@
 package com.miatharifa.javachallenge2017.players;
 
+import com.miatharifa.javachallenge2017.game.GameMap;
+import com.miatharifa.javachallenge2017.game.GameModel;
 import com.miatharifa.javachallenge2017.game.PlayerModel;
 import com.miatharifa.javachallenge2017.models.*;
 
@@ -10,15 +12,15 @@ import java.util.Map;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
-public class DumbPlayer extends PlayerModel {
+public class DumbPlayer extends AbstractPlayer {
     private static final Logger logger = Logger.getLogger(DumbPlayer.class.toString());
 
-    public DumbPlayer(boolean withUi) {
-        super(withUi);
+    public DumbPlayer(CommanderInterface commanderInterface) {
+        super(commanderInterface);
     }
 
-    @Override public void updateState(GameState gameStateUpdate) {
-        super.updateState(gameStateUpdate);
+    public void updateState(GameModel gameModel) {
+        this.gameModel = gameModel;
 
         ArrayList<Planet> planetsToAttack = new ArrayList<>();
         ArrayList<StationedArmy> armiesToMove = new ArrayList<>();
@@ -30,7 +32,7 @@ public class DumbPlayer extends PlayerModel {
                 continue;
             }
 
-            for (StationedArmy army : planet.getStationedArmies()) {
+            for (StationedArmy army : planet.stationedArmies) {
                 if (isArmyUsable(army)) {
                     armiesToMove.add(army);
                 }
@@ -43,9 +45,9 @@ public class DumbPlayer extends PlayerModel {
                 if (planetsToAttack.size() > 0) {
                     Planet target = getOptimalPlanet(army, planetsToAttack);
                     planetsToAttack.remove(target);
-                    long targetArmy = target.getStationedArmies().isEmpty() ? actualSize / 2 : target.getStationedArmies().get(0).size + 15;
+                    long targetArmy = target.stationedArmies.isEmpty() ? actualSize / 2 : target.stationedArmies.get(0).size + 15;
                     if (actualSize > targetArmy) {
-                        this.sendMessage(new Command(army.planet.planetID, target.planetID, targetArmy));
+                        this.sendCommand(new Command(army.planet.planetID, target.planetID, targetArmy));
                         actualSize -= targetArmy;
                     }
                 }
@@ -55,11 +57,11 @@ public class DumbPlayer extends PlayerModel {
     }
 
     private boolean isPlanetMine(Planet planet) {
-        return PlayerModel.NAME.equals(planet.getOwner()) && planet.getOwnershipRatio() >= 0.999d;
+        return PlayerModel.NAME.equals(planet.owner) && planet.ownershipRatio >= 0.999d;
     }
 
     private boolean isPlanetAttractive(Planet planet) {
-        return planet.getOwner() != null && !planet.getMovingArmies().stream().anyMatch(x -> x.owner.equals(NAME));
+        return planet.owner != null && planet.movingArmies.stream().noneMatch(x -> x.owner.equals(PlayerModel.NAME));
     }
 
     private boolean isArmyUsable(StationedArmy army) {
@@ -81,8 +83,7 @@ public class DumbPlayer extends PlayerModel {
     }
 
     @Override
-    protected void sendMessage(Command command) {
-        logger.info(String.format("Sending message %s", command));
-        super.sendMessage(command);
+    public void initPlayer(GameDescription gameDescription, GameMap gameMap) {
+
     }
 }

@@ -21,10 +21,10 @@ public class Planet {
     public Long radius;
 
 
-    private List<MovingArmy> movingArmies;
-    private List<StationedArmy> stationedArmies;
-    private Double ownershipRatio;
-    private String owner;
+    public List<MovingArmy> movingArmies;
+    public List<StationedArmy> stationedArmies;
+    public Double ownershipRatio;
+    public String owner;
 
     public void setState(PlanetState state) {
         this.movingArmies = state.movingArmies;
@@ -34,21 +34,6 @@ public class Planet {
         this.owner = state.owner;
     }
 
-    public List<MovingArmy> getMovingArmies() {
-        return movingArmies;
-    }
-
-    public List<StationedArmy> getStationedArmies() {
-        return stationedArmies;
-    }
-
-    public Double getOwnershipRatio() {
-        return ownershipRatio;
-    }
-
-    public String getOwner() {
-        return owner;
-    }
 
     public double getDistance(Planet other) {
         return Math.sqrt(Math.pow(other.x - this.x, 2 ) + Math.pow(other.y - this.y, 2));

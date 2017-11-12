@@ -50,7 +50,6 @@ public class Ui {
 
     public static void refresh(GameState gameState) {
         frame.refresh(gameState);
-        log.info("UI refreshed");
     }
 
     private static boolean started = false;
