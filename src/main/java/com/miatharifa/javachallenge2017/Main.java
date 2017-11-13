@@ -41,9 +41,9 @@ public class Main {
             ClientEndpointConfig config = ClientEndpointConfig.Builder.create().configurator(configurator).build();
 
             boolean withUi = false;
-            if (args.length > 1)
+            if (args.length > 1) {
                 withUi = Boolean.valueOf(args[1]);
-//            PlayerModel playerModel = new DumbPlayer(withUi);
+            }
             PlayerModel playerModel = new PlayerModel(withUi);
 
             webSocket.connectToServer(playerModel, config, URI.create("ws://javachallenge.loxon.hu:8080/JavaChallenge2017/websocket"));
@@ -51,8 +51,9 @@ public class Main {
             log.info("Sleeping");
 
             while(playerModel.state != KILLED) {
-                Thread.sleep(1000);
+                Thread.sleep(10000);
             }
+            System.exit(0);
 
         } catch (Exception e) {
             e.printStackTrace();

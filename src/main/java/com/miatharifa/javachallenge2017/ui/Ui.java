@@ -22,22 +22,26 @@ public class Ui {
 
         private PaintPanel paintPanel = null;
 
-        MainPaint(int x, int y) {
+        MainPaint(GameModel _gameModel) {
+            int x = _gameModel.map.mapSizeX.intValue();
+            int y = _gameModel.map.mapSizeY.intValue();
+
             setTitle("test paint");
-            setSize(x + 50, y + 80);
+            setSize(x, y);
 
             paintPanel = new PaintPanel(x, y);
             add(paintPanel, BorderLayout.CENTER);
 
             setVisible(true);
+            this.init(_gameModel);
         }
 
-        void refresh(GameState gameState) {
-            paintPanel.refresh(gameState);
+        void refresh(GameModel gameModel) {
+            paintPanel.refresh(gameModel);
             repaint();
         }
 
-        void init(GameDescription description) {
+        void init(GameModel description) {
             paintPanel.init(description);
             repaint();
         }
@@ -48,8 +52,8 @@ public class Ui {
         }
     }
 
-    public static void refresh(GameState gameState) {
-        frame.refresh(gameState);
+    public static void refresh(GameModel gameModel) {
+        frame.refresh(gameModel);
     }
 
     private static boolean started = false;
@@ -58,10 +62,10 @@ public class Ui {
         return started;
     }
 
-    public static void init(GameDescription description) {
+    public static void init(GameModel gameModel) {
         if(frame == null) {
             EventQueue.invokeLater(() -> {
-                frame = new MainPaint(toIntExact(description.mapSizeX), toIntExact(description.mapSizeY));
+                frame = new MainPaint(gameModel);
                 frame.setVisible(true);
             });
             try {
@@ -71,7 +75,6 @@ public class Ui {
             }
             log.info("UI initialized");
         }
-        frame.init(description);
         started = true;
     }
 

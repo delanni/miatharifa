@@ -9,24 +9,24 @@ import java.util.HashMap;
 import java.util.List;
 
 public class GameModel {
-    private HashMap<String, Player> players;
-    private GameMap map;
-    private Long broadcastSchedule;
-    private Long commandSchedule;
-    private Long internalSchedule;
-    private Double battleSpeed;
-    private Double captureSpeed;
-    private Double unitCreateSpeed;
+    public HashMap<String, Player> players;
+    public GameMap map;
+    public Long broadcastSchedule;
+    public Long commandSchedule;
+    public Long internalSchedule;
+    public Double battleSpeed;
+    public Double captureSpeed;
+    public Double unitCreateSpeed;
 
-    private Long gameLength;
-    private Double battleExponent;
-    private Long minMovableArmySize;
-    private Double planetExponent;
+    public Long gameLength;
+    public Double battleExponent;
+    public Long minMovableArmySize;
+    public Double planetExponent;
 
-    private Long timeElapsed;
-    private String gameStatus;
-    private Long remainingPlayers;
-    private List<Standing> standings;
+    public Long timeElapsed;
+    public String gameStatus;
+    public Long remainingPlayers;
+    public List<Standing> standings;
 
     public void initialize(GameDescription description) {
         this.gameLength = description.gameLength;
@@ -57,67 +57,4 @@ public class GameModel {
         return 0.0;
     }
 
-    public HashMap<String, Player> getPlayers() {
-        return players;
-    }
-
-    public GameMap getMap() {
-        return map;
-    }
-
-    public Long getBroadcastSchedule() {
-        return broadcastSchedule;
-    }
-
-    public Long getCommandSchedule() {
-        return commandSchedule;
-    }
-
-    public Long getInternalSchedule() {
-        return internalSchedule;
-    }
-
-    public Double getBattleSpeed() {
-        return battleSpeed;
-    }
-
-    public Double getCaptureSpeed() {
-        return captureSpeed;
-    }
-
-    public Double getUnitCreateSpeed() {
-        return unitCreateSpeed;
-    }
-
-    public Long getGameLength() {
-        return gameLength;
-    }
-
-    public Double getBattleExponent() {
-        return battleExponent;
-    }
-
-    public Double getPlanetExponent() {
-        return planetExponent;
-    }
-
-    public Long getTimeElapsed() {
-        return timeElapsed;
-    }
-
-    public String getGameStatus() {
-        return gameStatus;
-    }
-
-    public Long getRemainingPlayers() {
-        return remainingPlayers;
-    }
-
-    public List<Standing> getStandings() {
-        return standings;
-    }
-
-    public Long getMinMovableArmySize() {
-        return minMovableArmySize;
-    }
 }

@@ -1,15 +1,11 @@
 package com.miatharifa.javachallenge2017.players;
 
-import com.miatharifa.javachallenge2017.game.GameMap;
 import com.miatharifa.javachallenge2017.game.GameModel;
 import com.miatharifa.javachallenge2017.game.PlayerModel;
 import com.miatharifa.javachallenge2017.models.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Map;
-import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 public class DumbPlayer extends AbstractPlayer {
@@ -25,7 +21,7 @@ public class DumbPlayer extends AbstractPlayer {
         ArrayList<Planet> planetsToAttack = new ArrayList<>();
         ArrayList<StationedArmy> armiesToMove = new ArrayList<>();
 
-        for (Map.Entry<Long, Planet> entry : this.gameModel.getMap().planets.entrySet()) {
+        for (Map.Entry<Long, Planet> entry : this.gameModel.map.planets.entrySet()) {
             Planet planet = entry.getValue();
             if (!isPlanetMine(planet) && isPlanetAttractive(planet)) {
                 planetsToAttack.add(planet);
@@ -41,7 +37,7 @@ public class DumbPlayer extends AbstractPlayer {
 
         for (StationedArmy army : armiesToMove) {
             long actualSize = army.size;
-            while (actualSize > gameModel.getMinMovableArmySize() && planetsToAttack.size() > 0) {
+            while (actualSize > gameModel.minMovableArmySize && planetsToAttack.size() > 0) {
                 if (planetsToAttack.size() > 0) {
                     Planet target = getOptimalPlanet(army, planetsToAttack);
                     planetsToAttack.remove(target);
@@ -65,7 +61,7 @@ public class DumbPlayer extends AbstractPlayer {
     }
 
     private boolean isArmyUsable(StationedArmy army) {
-        return army.size > this.gameModel.getMinMovableArmySize() && army.owner.equals((PlayerModel.NAME))
+        return army.size > this.gameModel.minMovableArmySize && army.owner.equals((PlayerModel.NAME))
             && isPlanetMine(army.planet);
     }
 
@@ -73,7 +69,7 @@ public class DumbPlayer extends AbstractPlayer {
         int maxIdx = 0;
 
         for (int i = 1; i < planets.size(); i++) {
-            if (this.gameModel.getMap().distanceOf(army.planet, this.gameModel.getMap().getPlanetByIdx(i)) < this.gameModel.getMap().distanceOf(army.planet, this.gameModel.getMap().getPlanetByIdx(maxIdx))) {
+            if (this.gameModel.map.distanceOf(army.planet, this.gameModel.map.getPlanetByIdx(i)) < this.gameModel.map.distanceOf(army.planet, this.gameModel.map.getPlanetByIdx(maxIdx))) {
             //if (this.gameModel.getMap().getPlanetByIdx(i).radius > this.gameModel.getMap().getPlanetByIdx(maxIdx).radius) {
                 maxIdx = i;
             }
@@ -83,7 +79,7 @@ public class DumbPlayer extends AbstractPlayer {
     }
 
     @Override
-    public void initPlayer(GameDescription gameDescription, GameMap gameMap) {
+    public void initPlayer(GameDescription gameDescription, GameModel gameMap) {
 
     }
 }

@@ -10,8 +10,8 @@ import java.util.logging.Logger;
 
 public class GameMap {
     private static final Logger logger = Logger.getLogger(GameMap.class.toString());
-    private final Long mapSizeX;
-    private final Long mapSizeY;
+    public final Long mapSizeX;
+    public final Long mapSizeY;
     public final HashMap<Long, Planet> planets;
 
     public Map<Long, Integer> planetIdIdxMap;

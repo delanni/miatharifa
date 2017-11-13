@@ -8,15 +8,18 @@ import com.miatharifa.javachallenge2017.models.GameState;
 
 import javax.websocket.*;
 
+import com.miatharifa.javachallenge2017.players.AbstractPlayer;
+import com.miatharifa.javachallenge2017.players.DumbPlayer;
 import com.miatharifa.javachallenge2017.ui.Ui;
 
-abstract class PlayerClient  extends Endpoint implements MessageHandler.Whole<String>{
+abstract class PlayerClient extends Endpoint implements MessageHandler.Whole<String> {
     private Session session;
     protected Gson gson;
     public ParseState state = ParseState.WAIT_FOR_GAME_DESCRIPTION;
     final boolean withUi;
+    public AbstractPlayer player;
 
-    PlayerClient(boolean withUi){
+    PlayerClient(boolean withUi) {
         this.withUi = withUi;
     }
 
@@ -52,46 +55,53 @@ abstract class PlayerClient  extends Endpoint implements MessageHandler.Whole<St
     protected void sendMessage(Command command) {
         try {
             session.getAsyncRemote().sendText(this.gson.toJson(command, Command.class));
-            if(withUi) {
+            if (withUi) {
                 Ui.sendCommand(command);
             }
-        } catch (Exception e ){
+        } catch (Exception e) {
             System.err.println("Exception while sending command " + command);
             e.printStackTrace();
         }
     }
 
     protected abstract void kill();
+
     protected abstract void updateState(GameState gameState);
+
     protected abstract void initialize(GameDescription description);
 }
 
 public class PlayerModel extends PlayerClient {
     public static final String NAME = "miathari";
     protected final GameModel gameModel;
-    public PlayerModel(boolean withUi){
+
+    public PlayerModel(boolean withUi) {
         super(withUi);
         this.gameModel = new GameModel();
+        this.player = new DumbPlayer(this::sendMessage);
     }
 
     public void initialize(GameDescription description) {
         System.out.println("Initialized");
         this.gameModel.initialize(description);
-        if(withUi) {
-            Ui.init(description);
+        if (withUi) {
+            Ui.init(this.gameModel);
         }
+        this.player.initPlayer(description, this.gameModel);
     }
 
     public void updateState(GameState gameStateUpdate) {
         System.out.println("Got update for time:" + gameStateUpdate.timeElapsed);
         System.out.println(gameStateUpdate);
         this.gameModel.updateAndDiff(gameStateUpdate);
-        if(withUi) {
-            Ui.refresh(gameStateUpdate);
+        if (withUi) {
+            Ui.refresh(this.gameModel);
         }
+        this.player.updateState(this.gameModel);
+
     }
 
-    public void kill(){
+    public void kill() {
         this.state = ParseState.KILLED;
         System.out.println("Stopped.");
     }
