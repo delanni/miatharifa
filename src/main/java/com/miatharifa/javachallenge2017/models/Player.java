@@ -9,7 +9,7 @@ public class Player {
 
     @SerializedName("raceID")
     @Expose
-    public Long raceID;
+    public Integer raceID;
     @SerializedName("userName")
     @Expose
     public String userName;

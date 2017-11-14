@@ -10,7 +10,7 @@ public class GameDescription {
 
     @SerializedName("mapSizeY")
     @Expose
-    public Long mapSizeY;
+    public Integer mapSizeY;
     @SerializedName("unitCreateSpeed")
     @Expose
     public Double unitCreateSpeed;
@@ -19,16 +19,16 @@ public class GameDescription {
     public Double battleSpeed;
     @SerializedName("mapSizeX")
     @Expose
-    public Long mapSizeX;
+    public Integer mapSizeX;
     @SerializedName("players")
     @Expose
     public List<Player> players = null;
     @SerializedName("commandSchedule")
     @Expose
-    public Long commandSchedule;
+    public Integer commandSchedule;
     @SerializedName("broadcastSchedule")
     @Expose
-    public Long broadcastSchedule;
+    public Integer broadcastSchedule;
     @SerializedName("movementSpeed")
     @Expose
     public Double movementSpeed;
@@ -43,15 +43,15 @@ public class GameDescription {
     public List<Planet> planets = null;
     @SerializedName("internalSchedule")
     @Expose
-    public Long internalSchedule;
+    public Integer internalSchedule;
     @SerializedName("battleExponent")
     @Expose
     public Double battleExponent;
     @SerializedName("minMovableArmySize")
     @Expose
-    public Long minMovableArmySize;
+    public Integer minMovableArmySize;
     @SerializedName("gameLength")
     @Expose
-    public Long gameLength;
+    public Integer gameLength;
 
 }

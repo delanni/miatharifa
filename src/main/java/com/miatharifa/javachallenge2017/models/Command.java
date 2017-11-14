@@ -7,13 +7,13 @@ import com.google.gson.annotations.SerializedName;
 public class Command {
     @SerializedName("moveFrom")
     @Expose
-    public Long moveFrom;
+    public Integer moveFrom;
     @SerializedName("moveTo")
     @Expose
-    public Long moveTo;
+    public Integer moveTo;
     @SerializedName("armySize")
     @Expose
-    public Long armySize;
+    public Integer armySize;
 
     @Override
     public String toString() {
@@ -24,7 +24,7 @@ public class Command {
                 '}';
     }
 
-    public Command(long from, long to, long armySize) {
+    public Command(int from, int to, int armySize) {
         this.moveFrom = from;
         this.moveTo = to;
         this.armySize = armySize;

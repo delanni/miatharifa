@@ -23,8 +23,8 @@ public class Ui {
         private PaintPanel paintPanel = null;
 
         MainPaint(GameModel _gameModel) {
-            int x = _gameModel.map.mapSizeX.intValue();
-            int y = _gameModel.map.mapSizeY.intValue();
+            int x = _gameModel.map.mapSizeX;
+            int y = _gameModel.map.mapSizeY;
 
             setTitle("test paint");
             setSize(x, y);

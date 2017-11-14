@@ -1,5 +1,6 @@
 package com.miatharifa.javachallenge2017.models;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -11,13 +12,13 @@ public class GameState {
 
     @SerializedName("timeElapsed")
     @Expose
-    public Long timeElapsed;
+    public Integer timeElapsed;
     @SerializedName("planetStates")
     @Expose
-    public List<PlanetState> planetStates = null;
+    public List<PlanetState> planetStates = new ArrayList<>();
     @SerializedName("remainingPlayers")
     @Expose
-    public Long remainingPlayers;
+    public Integer remainingPlayers;
     @SerializedName("gameStatus")
     @Expose
     public String gameStatus;
@@ -42,8 +43,8 @@ public class GameState {
         return sb.toString();
     }
 
-    public Map<Long, PlanetState> getPlanetStatesMap() {
-        Map<Long, PlanetState> map = planetStates.stream().collect(Collectors.toMap(item -> item.planetID, item -> item));
+    public Map<Integer, PlanetState> getPlanetStatesMap() {
+        Map<Integer, PlanetState> map = planetStates.stream().collect(Collectors.toMap(item -> item.planetID, item -> item));
         return map;
     }
 }

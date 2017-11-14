@@ -7,10 +7,10 @@ public class Standing {
 
     @SerializedName("score")
     @Expose
-    public Long score;
+    public Integer score;
     @SerializedName("strength")
     @Expose
-    public Long strength;
+    public Integer strength;
     @SerializedName("userID")
     @Expose
     public String userID;

@@ -1,5 +1,6 @@
 
 package com.miatharifa.javachallenge2017.models;
+import java.util.ArrayList;
 import java.util.List;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
@@ -14,13 +15,13 @@ public class PlanetState {
     public Double ownershipRatio;
     @SerializedName("stationedArmies")
     @Expose
-    public List<StationedArmy> stationedArmies = null;
+    public List<StationedArmy> stationedArmies = new ArrayList<>();
     @SerializedName("movingArmies")
     @Expose
-    public List<MovingArmy> movingArmies = null;
+    public List<MovingArmy> movingArmies = new ArrayList<>();
     @SerializedName("planetID")
     @Expose
-    public Long planetID;
+    public Integer planetID;
 
     @Override
     public String toString() {

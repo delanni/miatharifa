@@ -21,7 +21,7 @@ public class DumbPlayer extends AbstractPlayer {
         ArrayList<Planet> planetsToAttack = new ArrayList<>();
         ArrayList<StationedArmy> armiesToMove = new ArrayList<>();
 
-        for (Map.Entry<Long, Planet> entry : this.gameModel.map.planets.entrySet()) {
+        for (Map.Entry<Integer, Planet> entry : this.gameModel.map.planets.entrySet()) {
             Planet planet = entry.getValue();
             if (!isPlanetMine(planet) && isPlanetAttractive(planet)) {
                 planetsToAttack.add(planet);
@@ -36,12 +36,12 @@ public class DumbPlayer extends AbstractPlayer {
         }
 
         for (StationedArmy army : armiesToMove) {
-            long actualSize = army.size;
+            int actualSize = army.size;
             while (actualSize > gameModel.minMovableArmySize && planetsToAttack.size() > 0) {
                 if (planetsToAttack.size() > 0) {
                     Planet target = getOptimalPlanet(army, planetsToAttack);
                     planetsToAttack.remove(target);
-                    long targetArmy = target.stationedArmies.isEmpty() ? actualSize / 2 : target.stationedArmies.get(0).size + 15;
+                    int targetArmy = target.stationedArmies.isEmpty() ? actualSize / 2 : target.stationedArmies.get(0).size + 15;
                     if (actualSize > targetArmy) {
                         this.sendCommand(new Command(army.planet.planetID, target.planetID, targetArmy));
                         actualSize -= targetArmy;
