@@ -17,11 +17,7 @@ public class Command {
 
     @Override
     public String toString() {
-        return "Command{" +
-                "moveFrom=" + moveFrom +
-                ", moveTo=" + moveTo +
-                ", armySize=" + armySize +
-                '}';
+        return this.armySize + " [" + this.moveFrom + " -> " + this.moveTo + "]";
     }
 
     public Command(int from, int to, int armySize) {

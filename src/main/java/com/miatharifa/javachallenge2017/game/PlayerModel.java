@@ -83,7 +83,8 @@ public class PlayerModel extends PlayerClient {
     public PlayerModel(boolean withUi) {
         super(withUi);
         this.gameModel = new GameModel();
-        this.player = new PotatoPlayer(this::sendMessage);
+        this.player = new DumbPlayer(this::sendMessage);
+//        this.player = new PotatoPlayer(this::sendMessage);
     }
 
     public void initialize(GameDescription description) {
@@ -99,9 +100,15 @@ public class PlayerModel extends PlayerClient {
         long lastUpdateAt = System.currentTimeMillis();
         long nextUpdateDue = lastUpdateAt + this.gameModel.broadcastSchedule;
         System.out.println("Got update for time:" + gameStateUpdate.timeElapsed);
-        double diff = this.gameModel.updateAndDiff(gameStateUpdate);
-//        System.out.println("Diff is " + diff);
-        this.player.updateState(this.gameModel);
+
+        this.gameModel.update(gameStateUpdate);
+        this.player.updateStateRoundStart(this.gameModel);
+
+        this.gameModel.progressToNextState();
+        this.player.updateStateRoundEnd(this.gameModel);
+
+        this.gameModel.reset();
+
         if (withUi) {
             Ui.refresh(this.gameModel);
 
@@ -111,7 +118,7 @@ public class PlayerModel extends PlayerClient {
                     this.gameModel.tick();
                     Ui.refresh(this.gameModel);
                 } catch (Exception e) {
-
+                    e.printStackTrace();
                 }
             }
             System.out.println("Current time is : " + System.currentTimeMillis() + " time until next update: " + (nextUpdateDue - System.currentTimeMillis()));

@@ -21,9 +21,17 @@ public abstract class AbstractPlayer {
     }
 
     protected void sendCommand(Command command) {
-        logger.info("Sending command" + command.toString());
+        System.out.println(command.toString());
         this.commanderInterface.sendCommand(command);
+        this.gameModel.applyCommand(command);
     }
-    public abstract void updateState(GameModel gameStateUpdate);
+    public abstract void updateStateRoundStart(GameModel gameModel);
+    public abstract void updateStateRoundEnd(GameModel gameModel);
     public abstract void initPlayer(GameDescription gameDescription, GameModel gameMap);
+
+    protected void sendTroops(Planet from, Planet to, int armySize){
+        Command c = new Command(from.planetID, to.planetID, armySize);
+        System.out.println("Executing: " + c.toString());
+        this.sendCommand(c);
+    }
 }

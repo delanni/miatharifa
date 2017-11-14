@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.google.gson.Gson;
+import com.google.gson.Gson.*;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
@@ -46,5 +48,10 @@ public class GameState {
     public Map<Integer, PlanetState> getPlanetStatesMap() {
         Map<Integer, PlanetState> map = planetStates.stream().collect(Collectors.toMap(item -> item.planetID, item -> item));
         return map;
+    }
+
+    public GameState clone() {
+        Gson gson = new Gson();
+        return gson.fromJson(gson.toJson(this, this.getClass()), this.getClass());
     }
 }

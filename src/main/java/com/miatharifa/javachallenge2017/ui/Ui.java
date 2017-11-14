@@ -81,6 +81,5 @@ public class Ui {
 
     public static void sendCommand(Command command) {
         frame.sendCommand(command);
-        log.info("UI command sent");
     }
 }

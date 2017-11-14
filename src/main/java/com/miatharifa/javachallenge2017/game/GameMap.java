@@ -58,7 +58,7 @@ public class GameMap {
                 distanceMatrix[j][i] = distance;
             }
         }
-        dumpDistanceMatrix();
+//        dumpDistanceMatrix();
     }
 
     private void dumpDistanceMatrix() {

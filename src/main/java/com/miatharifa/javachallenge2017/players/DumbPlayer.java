@@ -15,7 +15,14 @@ public class DumbPlayer extends AbstractPlayer {
         super(commanderInterface);
     }
 
-    public void updateState(GameModel gameModel) {
+
+    @Override
+    public void updateStateRoundEnd(GameModel gameModel) {
+
+    }
+
+    @Override
+    public void updateStateRoundStart(GameModel gameModel) {
         this.gameModel = gameModel;
 
         ArrayList<Planet> planetsToAttack = new ArrayList<>();
@@ -36,14 +43,14 @@ public class DumbPlayer extends AbstractPlayer {
         }
 
         for (StationedArmy army : armiesToMove) {
-            int actualSize = army.size;
+            int actualSize = army.size.intValue();
             while (actualSize > gameModel.minMovableArmySize && planetsToAttack.size() > 0) {
                 if (planetsToAttack.size() > 0) {
                     Planet target = getOptimalPlanet(army, planetsToAttack);
                     planetsToAttack.remove(target);
-                    int targetArmy = target.stationedArmies.isEmpty() ? actualSize / 2 : target.stationedArmies.get(0).size + 15;
+                    int targetArmy = target.stationedArmies.isEmpty() ? actualSize / 2 : target.stationedArmies.get(0).size.intValue() + 15;
                     if (actualSize > targetArmy) {
-                        this.sendCommand(new Command(army.planet.planetID, target.planetID, targetArmy));
+                        this.sendTroops(army.planet, target, targetArmy);
                         actualSize -= targetArmy;
                     }
                 }
@@ -69,7 +76,7 @@ public class DumbPlayer extends AbstractPlayer {
         int maxIdx = 0;
 
         for (int i = 1; i < planets.size(); i++) {
-            if (this.gameModel.map.distanceOf(army.planet, this.gameModel.map.getPlanetByIdx(i)) < this.gameModel.map.distanceOf(army.planet, this.gameModel.map.getPlanetByIdx(maxIdx))) {
+            if (this.gameModel.map.distanceOf(army.planet, this.gameModel.map.getPlanetByIdx(i)) > this.gameModel.map.distanceOf(army.planet, this.gameModel.map.getPlanetByIdx(maxIdx))) {
             //if (this.gameModel.getMap().getPlanetByIdx(i).radius > this.gameModel.getMap().getPlanetByIdx(maxIdx).radius) {
                 maxIdx = i;
             }

@@ -4,13 +4,7 @@ import com.miatharifa.javachallenge2017.models.*;
 import javafx.util.Pair;
 
 import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.BinaryOperator;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class GameModel {
     public HashMap<String, Player> players;
@@ -58,12 +52,10 @@ public class GameModel {
         this.minMovableArmySize = description.minMovableArmySize;
     }
 
-    public double updateAndDiff(GameState gameStateUpdate) {
-        this.lastUpdate = gameStateUpdate;
+    public void update(GameState gameStateUpdate) {
+        this.lastUpdate = gameStateUpdate.clone();
 
-        while (this.simulationTicksRemaining > 0) {
-            this.tick();
-        }
+        this.progressToNextState();
 
         this.simulationTicksRemaining = this.broadcastSchedule / this.internalSchedule;
 
@@ -72,24 +64,44 @@ public class GameModel {
 
         this.map.movingArmies.clear();
         this.map.stationedArmies.clear();
-        Double planetStateDiffs = gameStateUpdate.planetStates.stream()
-                .map(planetState -> {
-                    this.map.movingArmies.addAll(planetState.movingArmies);
-                    this.map.stationedArmies.addAll(planetState.stationedArmies);
-                    return this.map.planets.get(planetState.planetID).setState(planetState);
-                })
-                .reduce(0.0, (a, b) -> a + b);
+
+        gameStateUpdate.planetStates.forEach(planetState -> {
+            this.map.movingArmies.addAll(planetState.movingArmies);
+            this.map.stationedArmies.addAll(planetState.stationedArmies);
+            this.map.planets.get(planetState.planetID).setState(planetState);
+        });
+
         this.remainingPlayers = gameStateUpdate.remainingPlayers;
         this.standings = gameStateUpdate.standings;
-        return planetStateDiffs;
     }
 
     public void reset() {
-        this.updateAndDiff(this.lastUpdate);
+        this.update(this.lastUpdate);
+    }
+
+    public void applyCommand(Command c) {
+        Planet fromPlanet = this.map.planets.get(c.moveFrom);
+        Planet toPlanet = this.map.planets.get(c.moveTo);
+        Optional<StationedArmy> playersArmies = fromPlanet.getArmiesFor(PlayerModel.NAME);
+        if (playersArmies.isPresent()) {
+            StationedArmy stationedArmy = playersArmies.get();
+            if (stationedArmy.size >= this.minMovableArmySize) {
+                double size = Math.floor(Math.min(c.armySize, stationedArmy.size));
+                stationedArmy.size -= size;
+                MovingArmy m = new MovingArmy(PlayerModel.NAME, (int) size, (double) fromPlanet.x, (double) fromPlanet.y, toPlanet);
+                m.targetPlanet.movingArmies.add(m);
+                this.map.movingArmies.add(m);
+            } else {
+                System.out.println("Trying to move " + c.armySize + " of " + stationedArmy.size + " ... " + c.toString());
+            }
+        } else {
+            System.out.println("No troops on planet " + c.moveFrom);
+        }
     }
 
     public void tick() {
         this.simulationTicksRemaining -= 1;
+
         // Conquest
         Map<Integer, MovingArmy> arrivals = new HashMap<>();
 
@@ -114,9 +126,11 @@ public class GameModel {
             if (stationedArmy.isPresent()) {
                 stationedArmy.get().size += arrivingArmy.size;
             } else {
-                hostPlanet.stationedArmies.add(new StationedArmy(ownerId, arrivingArmy.size, hostPlanet));
+                StationedArmy s = new StationedArmy(ownerId, arrivingArmy.size.doubleValue(), hostPlanet);
+                hostPlanet.stationedArmies.add(s);
+                map.stationedArmies.add(s);
             }
-
+            map.movingArmies.remove(arrivingArmy);
             hostPlanet.movingArmies.remove(arrivingArmy);
         });
 
@@ -124,29 +138,52 @@ public class GameModel {
             if (p.stationedArmies.size() > 1) {
                 // Conbat
                 int totalArmyOnPlanet = p.getTotalArmyCount();
-                List<Pair<StationedArmy, Integer>> lossPairs = p.stationedArmies.stream().map(army -> {
+                List<Pair<StationedArmy, Double>> lossPairs = p.stationedArmies.stream().map(army -> {
                     int enemyCount = p.getEnemyCountFor(army.owner);
 
-                    int lostArmy = (int) Math.round(Math.pow(this.battleSpeed * enemyCount, this.battleExponent) / totalArmyOnPlanet);
+                    double lostArmy = this.battleSpeed * Math.pow(enemyCount, this.battleExponent) / totalArmyOnPlanet;
                     return new Pair<>(army, lostArmy);
                 }).collect(Collectors.toList());
 
-                lossPairs.forEach(pair -> pair.getKey().size -= pair.getValue());
+                for (Pair<StationedArmy, Double> pair : lossPairs) {
+                    StationedArmy army = pair.getKey();
+                    army.size = army.size - pair.getValue();
+                    if (army.size < 0) {
+                        p.stationedArmies.remove(army);
+                        map.stationedArmies.remove(army);
+                    }
+                }
             } else if (p.stationedArmies.size() == 1) {
                 // Conquer
                 StationedArmy army = p.stationedArmies.get(0);
                 double ownershipRatioChange = army.size * this.captureSpeed / Math.pow(p.radius, this.planetExponent);
                 if (!Objects.equals(p.owner, p.stationedArmies.get(0).owner)) {
+                    double resultingOwnershipRatio = p.ownershipRatio - ownershipRatioChange;
+                    if (resultingOwnershipRatio < 0.0) {
+                        p.owner = p.stationedArmies.get(0).owner;
+                    }
                     p.ownershipRatio = Math.max(p.ownershipRatio - ownershipRatioChange, 0);
                 } else if (p.ownershipRatio < 1.0) {
                     p.ownershipRatio = Math.min(p.ownershipRatio + ownershipRatioChange, 1.0);
                 } else {
-                    // Construct
-                    army.size += (int) Math.round(Math.pow(p.radius, this.planetExponent) * this.unitCreateSpeed);
+                    army.size += Math.pow(p.radius, this.planetExponent) * this.unitCreateSpeed;
+                }
+            } else {
+                // Construct
+                if (p.owner != null) {
+                    double newArmySize = Math.pow(p.radius, this.planetExponent) * this.unitCreateSpeed;
+                    StationedArmy s = new StationedArmy(p.owner, newArmySize, p);
+                    p.stationedArmies.add(s);
+                    map.stationedArmies.add(s);
                 }
             }
         });
 
     }
 
+    public void progressToNextState() {
+        while (this.simulationTicksRemaining > 0) {
+            this.tick();
+        }
+    }
 }

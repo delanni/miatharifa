@@ -14,11 +14,11 @@ public class StationedArmy {
     public String owner;
     @SerializedName("size")
     @Expose
-    public Integer size;
+    public Double size;
 
     public Planet planet;
 
-    public StationedArmy(String ownerId, Integer size, Planet planet) {
+    public StationedArmy(String ownerId, Double size, Planet planet) {
         this.owner = ownerId;
         this.size = size;
         this.planet = planet;

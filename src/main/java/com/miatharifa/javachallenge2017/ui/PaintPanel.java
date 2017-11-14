@@ -115,7 +115,7 @@ class PaintPanel extends JPanel {
                     height - planet.y + 15);
             String armies = StringUtils.join(
                     planet.stationedArmies.stream()
-                            .map(s -> s.owner + "[" + s.size + "]")
+                            .map(s -> s.owner + "[" + s.size.intValue() + "]")
                             .collect(Collectors.toList()),
                     ", ");
             g2d.drawString(armies, planet.x, height - planet.y + 30);
@@ -129,7 +129,7 @@ class PaintPanel extends JPanel {
                 g2d.setTransform(transform);
 
                 g2d.setColor(colors.get(movingArmy.owner));
-                g2d.drawLine(planet.x.intValue(), height - planet.y.intValue(), movingArmy.x.intValue(), height - movingArmy.y.intValue());
+                g2d.drawLine(planet.x, height - planet.y, movingArmy.x.intValue(), height - movingArmy.y.intValue());
 
                 double x = movingArmy.x;
                 double y = movingArmy.y;

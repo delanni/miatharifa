@@ -28,6 +28,16 @@ public class MovingArmy {
         return new XVector(this.x, this.y);
     }
 
+    public Planet targetPlanet = null;
+
+    public MovingArmy(String owner, int size, double x, double y, Planet targetPlanet){
+        this.owner = owner;
+        this.size = size;
+        this.x = x;
+        this.y = y;
+        this.targetPlanet = targetPlanet;
+    }
+
     @Override
     public String toString() {
         return "MovingArmy{" +

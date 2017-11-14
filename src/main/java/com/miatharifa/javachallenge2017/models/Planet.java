@@ -27,19 +27,13 @@ public class Planet {
     public Double ownershipRatio = 0.0;
     public String owner;
 
-    public double setState(PlanetState state) {
-        double diff = 0.0;
-//        diff += MovingArmy.diffArrays(this.movingArmies, state.movingArmies);
-//        diff += StationedArmy.diffArrays(this.stationedArmies, state.stationedArmies);
-//        diff += Math.abs(this.ownershipRatio - state.ownershipRatio);
-//        diff += !Objects.equals(owner, state.owner) ? 1 : 0;
-
+    public void setState(PlanetState state) {
         this.movingArmies = state.movingArmies;
         this.stationedArmies = state.stationedArmies;
-        for (StationedArmy army : stationedArmies) army.planet = this;
+        for (StationedArmy army : this.stationedArmies) army.planet = this;
+        for (MovingArmy army : this.movingArmies) army.targetPlanet = this;
         this.ownershipRatio = state.ownershipRatio;
         this.owner = state.owner;
-        return diff;
     }
 
     public int getTotalArmyCount() {
@@ -70,10 +64,14 @@ public class Planet {
 
     public String getPredominantForce() {
         HashMap<String, Integer> armies = new HashMap<>();
-        this.stationedArmies.forEach(p -> armies.put(p.owner, armies.containsKey(p.owner) ? armies.get(p.owner) + p.size : p.size));
+        this.stationedArmies.forEach(p -> armies.put(p.owner, armies.containsKey(p.owner) ? armies.get(p.owner) + p.size.intValue() : p.size.intValue()));
         this.movingArmies.forEach(p -> armies.put(p.owner, armies.containsKey(p.owner) ? armies.get(p.owner) + p.size : p.size));
 
         Optional<Map.Entry<String, Integer>> pForce = armies.entrySet().stream().sorted(Comparator.comparingInt(Map.Entry::getValue)).findFirst();
         return pForce.map(Map.Entry::getKey).orElse("");
+    }
+
+    public Optional<StationedArmy> getArmiesFor(String name) {
+        return this.stationedArmies.stream().filter(x->x.owner.equals(name)).findFirst();
     }
 }
