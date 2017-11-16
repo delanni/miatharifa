@@ -8,13 +8,15 @@ import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import static com.miatharifa.javachallenge2017.magicutils.Utils.getAllBucketSizes;
+import static com.miatharifa.javachallenge2017.models.Command.CommandLabel.*;
 
 public class PotatoPlayer extends AbstractPlayer {
     private static final Logger logger = Logger.getLogger(PotatoPlayer.class.toString());
     private static final double OVERCOUNT_MULTIPLIER = 1.5;
     private static final double ESTIMATED_PLANET_LIFETIME = 1000.0;
     private static final Integer CONQUEST_SCALER = 5;
+    private static final Integer HANG_ON_DISTANCE = 50;
+
 
     public PotatoPlayer(CommanderInterface commanderInterface) {
         super(commanderInterface);
@@ -22,6 +24,8 @@ public class PotatoPlayer extends AbstractPlayer {
 
     @Override
     public void updateStateRoundStart(GameModel gameModel) {
+        // Don't use this, because the earliest your command will take place is going to be the end of round state
+
         this.gameModel = gameModel;
     }
 
@@ -33,35 +37,57 @@ public class PotatoPlayer extends AbstractPlayer {
         List<StationedArmy> attackingEnemyArmies = getStationedEnemyArmies(gameModel.map.stationedArmies);
         List<StationedArmy> myArmies = getMyStationedArmies(gameModel.map.stationedArmies);
 
-        // Defend
+        // Defend && Mark Evacuate
+        System.out.println("- DEFEND & MARK EVAC");
         List<StationedArmy> armiesToEvacuate = new ArrayList<>();
         ArrayList<StationedArmy> movableArmies = new ArrayList<>(myArmies.stream().filter(this::isMoveable).collect(Collectors.toList()));
         attackingEnemyArmies.forEach(attackingEnemy -> {
             Optional<StationedArmy> myAttackedArmy = myArmies.stream().filter(x -> x.planet == attackingEnemy.planet).findFirst();
             if (myAttackedArmy.isPresent()) {
                 StationedArmy myAttackedArmy_ = myAttackedArmy.get();
-                if (myAttackedArmy_.size > attackingEnemy.size && myAttackedArmy_.size > myAttackedArmy_.planet.getEnemyCountFor(PlayerModel.NAME)) {
+                int myIncomingArmies = myAttackedArmy_.planet.movingArmies.stream()
+                        .filter(x -> x.owner.equals(PlayerModel.NAME) && x.getPosition().distance(myAttackedArmy_.planet.getPosition()) < HANG_ON_DISTANCE)
+                        .mapToInt(x -> x.size).sum();
+                int enemyCountForMe = myAttackedArmy_.planet.getEnemyCountFor(PlayerModel.NAME);
+                int myPresence = (int) (myIncomingArmies + myAttackedArmy_.size);
+                if (myPresence > enemyCountForMe) {
                     // stay because we wait for incoming
+                    System.out.println("Decided to defend " + myAttackedArmy_.size + " against " + enemyCountForMe + " + " + attackingEnemy.size);
+                    proposedCommands.add(new Command(myAttackedArmy_, myAttackedArmy_.planet, myAttackedArmy_.size).of(DEFEND, "Defending against " + enemyCountForMe + " + " + attackingEnemy.size));
                     movableArmies.remove(myAttackedArmy_);
-                } else {
+                } else if (myAttackedArmy_.size > this.gameModel.minMovableArmySize) {
                     // evacuate because they are coming or they overpower
+                    System.out.println("Decided to evacuate " + myAttackedArmy_.size + " against " + enemyCountForMe + " + " + attackingEnemy.size);
                     armiesToEvacuate.add(myAttackedArmy_);
+                } else {
+                    System.out.println("Units " + myAttackedArmy_.size + " stuck on planet " + myAttackedArmy_.planet.planetID);
                 }
             }
         });
 
+        // Intercept Or Evac
+        System.out.println("- INTERCEPT");
         List<RescueSquad> rescueSquads = new ArrayList<>();
         for (MovingArmy enemyArmy : movingEnemyArmies) {
             Planet targetPlanet = enemyArmy.targetPlanet;
-            int totalArrivingEnemy = (int) (targetPlanet.movingArmies.stream().filter(x -> !x.owner.equals(PlayerModel.NAME)).mapToInt(x -> x.size).sum() * OVERCOUNT_MULTIPLIER);
+            List<MovingArmy> arrivingEnemies = targetPlanet.movingArmies.stream().filter(x -> !x.owner.equals(PlayerModel.NAME)).collect(Collectors.toList());
+            int totalArrivingEnemy = (int) (arrivingEnemies.stream().mapToInt(x -> x.size).sum() * OVERCOUNT_MULTIPLIER);
             int enemiesAlreadyThere = targetPlanet.stationedArmies.stream().filter(x -> !x.owner.equals(PlayerModel.NAME)).mapToInt(x -> x.size.intValue()).sum();
             int myArrivingUnits = targetPlanet.movingArmies.stream().filter(x -> x.owner.equals(PlayerModel.NAME)).mapToInt(x -> x.size).sum();
             int requiredArmySize = enemiesAlreadyThere + totalArrivingEnemy - myArrivingUnits;
             if (requiredArmySize <= 0) continue;
             double distance = enemyArmy.getPosition().distance(targetPlanet.getPosition());
-            List<StationedArmy> myArmiesCloseEnough = movableArmies.stream().filter(x -> x.planet.getDistance(targetPlanet) <= distance).collect(Collectors.toList());
+            List<StationedArmy> myArmiesCloseEnough = movableArmies.stream().filter(x -> x.planet.getDistance(targetPlanet) <= distance * 0.8).collect(Collectors.toList());
             if (sumArmySize(myArmiesCloseEnough) > requiredArmySize) {
+                System.out.println("Decided to intercept totalSqad of " + requiredArmySize + "@" + distance + " with " + Arrays.toString(myArmiesCloseEnough.stream().map(x -> x.planet.getPosition().distance(targetPlanet.getPosition())).toArray()));
                 rescueSquads.add(new RescueSquad(targetPlanet, requiredArmySize, myArmiesCloseEnough, sumDistance(myArmiesCloseEnough, targetPlanet)));
+            } else {
+                // Maybe evac?
+                targetPlanet.getArmiesFor(PlayerModel.NAME).ifPresent(myArmy -> {
+                    if (myArmy.size < arrivingEnemies.stream().filter(x -> x.getPosition().distance(x.targetPlanet.getPosition()) < HANG_ON_DISTANCE).mapToInt(x -> x.size).sum()) {
+                        armiesToEvacuate.add(myArmy);
+                    }
+                });
             }
         }
 
@@ -75,7 +101,7 @@ public class PotatoPlayer extends AbstractPlayer {
                 int armiesSent = (int) Math.min(armiesRequired, army.size);
                 if (army.planet != bestRescueSquad.planet) {
                     movableArmies.remove(army);
-                    proposedCommands.add(new Command(army, bestRescueSquad.planet, armiesSent));
+                    proposedCommands.add(new Command(army, bestRescueSquad.planet, armiesSent).of(INTERCEPT));
                 }
                 armiesRequired -= armiesSent;
                 if (armiesRequired == 0) {
@@ -85,29 +111,30 @@ public class PotatoPlayer extends AbstractPlayer {
         }
 
         // Conquer
-        for (StationedArmy army: movableArmies) {
-            if (getRequiredOwnership(army.planet) > 0.0) {
-//                movableArmies.remove(army);
-            } else {
-                List<Planet> closestPlanets = this.gameModel.map.getClosestUnownedPlanets(army.planet, PlayerModel.NAME, 100);
-//                if (army.size > this.gameModel.minMovableArmySize * 2 && closestPlanets.size() > 2) {
-//                    closestPlanets.sort(Comparator.comparingDouble(o -> -getPlanetConquerValue(o, army.planet, army.size / 2)));
-//                    proposedCommands.add(new Command(army, closestPlanets.get(0), (int) (army.size / 2)));
-//                    proposedCommands.add(new Command(army, closestPlanets.get(1), (int) (army.size / 2)));
-//                } else
-                    if (closestPlanets.size() >= 1) {
-                    closestPlanets.sort(Comparator.comparingDouble(o -> getPlanetConquerValue(o, army.planet, army.size)));
-                    proposedCommands.add(new Command(army, closestPlanets.get(0), army.size));
-                }
-            }
-        }
+//        for (StationedArmy army: movableArmies) {
+//            if (getRequiredOwnership(army.planet) > 0.0) {
+////                movableArmies.remove(army);
+//            } else {
+//                List<Planet> closestPlanets = this.gameModel.map.getClosestUnownedPlanets(army.planet, PlayerModel.NAME, 100);
+////                if (army.size > this.gameModel.minMovableArmySize * 2 && closestPlanets.size() > 2) {
+////                    closestPlanets.sort(Comparator.comparingDouble(o -> -getPlanetConquerValue(o, army.planet, army.size / 2)));
+////                    proposedCommands.add(new Command(army, closestPlanets.get(0), (int) (army.size / 2)));
+////                    proposedCommands.add(new Command(army, closestPlanets.get(1), (int) (army.size / 2)));
+////                } else
+//                    if (closestPlanets.size() >= 1) {
+//                    closestPlanets.sort(Comparator.comparingDouble(o -> getPlanetConquerValue(o, army.planet, army.size)));
+//                    proposedCommands.add(new Command(army, closestPlanets.get(0), army.size));
+//                }
+//            }
+//        }
 
-        // Escape
+        // Escape if wasn't used
         armiesToEvacuate.forEach(a -> {
+            System.out.println("Finding new home for " + a.size + " units from " + a.planet.planetID);
             List<Planet> closestOwnPlanets = this.gameModel.map.getClosestOwnPlanets(a.planet);
             if (closestOwnPlanets.size() > 0) {
                 Planet newTarget = closestOwnPlanets.get(0);
-                proposedCommands.add(new Command(a, newTarget, a.size));
+                proposedCommands.add(new Command(a, newTarget, a.size).of(ESCAPE, "Evacuating units"));
             }
         });
 
@@ -142,9 +169,13 @@ public class PotatoPlayer extends AbstractPlayer {
 //            }
 //        });
 
-        // Test commands?
-        // Execute commands
-        proposedCommands.forEach(this::sendCommand);
+        // Test & Execute commands
+        proposedCommands.sort(Comparator.comparingInt(x -> x.label.ordinal()));
+        if (proposedCommands.size() > 0) {
+            System.out.println("Proposals: " + Arrays.toString(proposedCommands.toArray()));
+            List<Command> unsentCommands = this.safeSendCommands(proposedCommands);
+            System.out.println("Unsent:" + Arrays.toString(unsentCommands.toArray()));
+        }
     }
 
     private double sumArmySize(List<StationedArmy> myArmiesCloseEnough) {
@@ -181,8 +212,9 @@ public class PotatoPlayer extends AbstractPlayer {
     }
 
     private double getPlanetConquerValue(Planet targetPlanet, Planet originPlanet, double armySize) {
-        if (targetPlanet.movingArmies.stream().anyMatch(x->PlayerModel.NAME.matches(x.owner))) return -100000000;
-        if (targetPlanet.stationedArmies.size() == 1 && targetPlanet.stationedArmies.get(0).owner.equals(PlayerModel.NAME)) return -100000000;
+        if (targetPlanet.movingArmies.stream().anyMatch(x -> PlayerModel.NAME.matches(x.owner))) return -100000000;
+        if (targetPlanet.stationedArmies.size() == 1 && targetPlanet.stationedArmies.get(0).owner.equals(PlayerModel.NAME))
+            return -100000000;
         double ownershipRequired = getRequiredOwnership(targetPlanet);
         if (ownershipRequired < 0.01) return -10000000;
         double timeToFlyThere = targetPlanet.getDistance(originPlanet) / this.gameModel.movementSpeed;

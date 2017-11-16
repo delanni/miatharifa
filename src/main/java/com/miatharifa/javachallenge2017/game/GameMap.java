@@ -98,7 +98,7 @@ public class GameMap {
     public List<Planet> getClosestOwnPlanets(Planet reference) {
         return this.planets.values()
                 .stream()
-                .filter(x -> PlayerModel.NAME.equals(x.owner))
+                .filter(x -> PlayerModel.NAME.equals(x.owner) && x != reference)
                 .sorted((o1, o2) -> (int) (this.distanceOf(reference, o1) - this.distanceOf(reference, o2)))
                 .collect(Collectors.toList());
     }

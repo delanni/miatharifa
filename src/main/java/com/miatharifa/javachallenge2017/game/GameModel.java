@@ -99,8 +99,15 @@ public class GameModel {
         }
     }
 
+    public boolean testCommand(Command c) {
+        Planet fromPlanet = this.map.planets.get(c.moveFrom);
+        Optional<StationedArmy> playersArmies = fromPlanet.getArmiesFor(PlayerModel.NAME);
+        return playersArmies.isPresent() && playersArmies.get().size >= this.minMovableArmySize;
+    }
+
     public void tick() {
         this.simulationTicksRemaining -= 1;
+        this.timeElapsed += this.internalSchedule;
 
         // Conquest
         Map<Integer, MovingArmy> arrivals = new HashMap<>();

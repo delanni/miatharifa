@@ -62,8 +62,9 @@ abstract class PlayerClient extends Endpoint implements MessageHandler.Whole<Str
 
     protected void sendMessage(Command command) {
         try {
-            System.out.println(System.currentTimeMillis() + " - Sending command: " + command);
-            session.getAsyncRemote().sendText(this.gson.toJson(command, Command.class));
+            String commandString = this.gson.toJson(command, Command.class);
+            System.out.println(System.currentTimeMillis() + "["+this.player.gameModel.timeElapsed+"] - Sending command: " + command);
+            session.getAsyncRemote().sendText(commandString);
             if (withUi) {
                 Ui.sendCommand(command);
             }
