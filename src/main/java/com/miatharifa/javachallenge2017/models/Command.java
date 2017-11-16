@@ -19,6 +19,7 @@ public class Command {
         ESCAPE,
         DEFEND,
         INTERCEPT,
+        CAPTURE,
         CONQUER,
         OTHER,
     }

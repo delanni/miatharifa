@@ -95,6 +95,15 @@ public class GameMap {
                 .collect(Collectors.toList());
     }
 
+    public List<Planet> getClosestUnownedPlanetsIncludingSelf(Planet reference, String playerName, int max) {
+        return this.planets.values()
+                .stream()
+                .filter(x -> (!playerName.equals(x.owner)))
+                .sorted((o1, o2) -> (int) (this.distanceOf(reference, o1) - this.distanceOf(reference, o2)))
+                .limit(max)
+                .collect(Collectors.toList());
+    }
+
     public List<Planet> getClosestOwnPlanets(Planet reference, String playerName) {
         return this.planets.values()
                 .stream()

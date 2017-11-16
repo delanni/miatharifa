@@ -8,12 +8,13 @@ import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import static com.miatharifa.javachallenge2017.magicutils.Utils.getAllBucketSizes;
 import static com.miatharifa.javachallenge2017.models.Command.CommandLabel.*;
 
 public class PotatoPlayer extends AbstractPlayer {
     private static final Logger logger = Logger.getLogger(PotatoPlayer.class.toString());
     private static final double OVERCOUNT_MULTIPLIER = 1.5;
-    private static final double ESTIMATED_PLANET_LIFETIME = 1000.0;
+    private static final double ESTIMATED_PLANET_LIFETIME = 10000.0;
     private static final Integer CONQUEST_SCALER = 5;
     private static final Integer HANG_ON_DISTANCE = 50;
 
@@ -91,7 +92,8 @@ public class PotatoPlayer extends AbstractPlayer {
             }
         }
 
-        while (!rescueSquads.isEmpty()) {
+        int maxIterations = 10;
+        while (!rescueSquads.isEmpty() && maxIterations > 0) {
             rescueSquads.sort(Comparator.comparingDouble(o -> o.distance));
             RescueSquad bestRescueSquad = rescueSquads.get(0);
             rescueSquads.remove(bestRescueSquad);
@@ -108,6 +110,7 @@ public class PotatoPlayer extends AbstractPlayer {
                     break;
                 }
             }
+            maxIterations -=1;
         }
 
         // Conquer
@@ -152,36 +155,45 @@ public class PotatoPlayer extends AbstractPlayer {
             }
         });
 
-//        movableArmies.forEach(army -> {
-//            List<Planet> closestPlanets = this.gameModel.map.getClosestUnownedPlanets(army.planet, PlayerModel.NAME, 4);
-//            int size = army.size.intValue();
-//            List<Integer[]> allBucketSizes = getAllBucketSizes(closestPlanets.size(), size / CONQUEST_SCALER, (int) Math.ceil(this.gameModel.minMovableArmySize / CONQUEST_SCALER));
-//            List<Double> distributionValues = allBucketSizes.stream().map(distribution -> {
-//                double sumValue = 0.0;
-//                for (int i = 0; i < distribution.length; i++) {
-//                    Planet targetPlanet = closestPlanets.get(i);
-//                    int unitsSent = distribution[i];
-//                    sumValue += getPlanetConquerValue(targetPlanet, army.planet, unitsSent);
-//                }
-//                return sumValue;
-//            }).collect(Collectors.toList());
-//
-//            double maxValue = Double.NEGATIVE_INFINITY;
-//            int maxIndex = 0;
-//            for (int i = 0; i < distributionValues.size(); i++) {
-//                if (maxValue < distributionValues.get(i)) {
-//                    maxValue = distributionValues.get(i);
-//                    maxIndex = i;
-//                }
-//            }
-//
-//            Integer[] optimalConquerDistribution = allBucketSizes.get(maxIndex);
-//            for (int i = 0; i < optimalConquerDistribution.length; i++) {
-//                if (optimalConquerDistribution[i] * CONQUEST_SCALER > this.gameModel.minMovableArmySize) {
-//                    proposedCommands.add(new Command(army, closestPlanets.get(i), optimalConquerDistribution[i] * CONQUEST_SCALER));
-//                }
-//            }
-//        });
+        movableArmies.forEach(army -> {
+            if (!PlayerModel.NAME.equals(army.planet.owner) || army.planet.ownershipRatio < 1.0) {
+                proposedCommands.add(new Command(army, army.planet , army.size).of(CAPTURE, "Stay and capture"));
+            } else if (army.size > 40) {
+                List<Planet> closestPlanets = this.gameModel.map.getClosestUnownedPlanetsIncludingSelf(army.planet, PlayerModel.NAME, 4);
+                int size = army.size.intValue();
+                List<Integer[]> allBucketSizes = getAllBucketSizes(closestPlanets.size(), size / CONQUEST_SCALER, (int) Math.ceil(this.gameModel.minMovableArmySize / CONQUEST_SCALER));
+                List<Double> distributionValues = allBucketSizes.stream().map(distribution -> {
+                    double sumValue = 0.0;
+                    for (int i = 0; i < distribution.length; i++) {
+                        Planet targetPlanet = closestPlanets.get(i);
+                        int unitsSent = distribution[i];
+                        sumValue += getPlanetConquerValue(targetPlanet, army.planet, unitsSent);
+                    }
+                    return sumValue;
+                }).collect(Collectors.toList());
+
+                double maxValue = Double.NEGATIVE_INFINITY;
+                int maxIndex = 0;
+                for (int i = 0; i < distributionValues.size(); i++) {
+                    if (maxValue < distributionValues.get(i)) {
+                        maxValue = distributionValues.get(i);
+                        maxIndex = i;
+                    }
+                }
+
+                Integer[] optimalConquerDistribution = allBucketSizes.get(maxIndex);
+                for (int i = 0; i < optimalConquerDistribution.length; i++) {
+                    if (optimalConquerDistribution[i] * CONQUEST_SCALER > this.gameModel.minMovableArmySize) {
+                        proposedCommands.add(new Command(army, closestPlanets.get(i), optimalConquerDistribution[i] * CONQUEST_SCALER).of(CONQUER, "Optimal distribution conquer decision?"));
+                    }
+                }
+            } else {
+                List<Planet> closestPlanets = this.gameModel.map.getClosestUnownedPlanets(army.planet, PlayerModel.NAME, 100);
+                closestPlanets.sort(Comparator.comparingDouble(x -> -getPlanetConquerValue(x, army.planet, army.size)));
+                Planet target = closestPlanets.get(0);
+                proposedCommands.add(new Command(army, target, army.size).of(CONQUER, "Single batch conquer"));
+            }
+        });
 
         // Test & Execute commands
         proposedCommands.sort(Comparator.comparingInt(x -> x.label.ordinal()));
@@ -246,7 +258,8 @@ public class PotatoPlayer extends AbstractPlayer {
             return Double.MAX_VALUE;
         }
         double ticks = 0;
-        while (enemiesArmySize > 1.0) {
+        double maxSteps = 100;
+        while (enemiesArmySize > 1.0 && ticks < maxSteps) {
             double totalArmyOnPlanet = enemiesArmySize + yourArmySize;
             double youLoseThisMany = this.gameModel.battleSpeed * Math.pow(enemiesArmySize, this.gameModel.battleExponent) / totalArmyOnPlanet;
             double theyLoseThisMany = this.gameModel.battleSpeed * Math.pow(yourArmySize, this.gameModel.battleExponent) / totalArmyOnPlanet;
