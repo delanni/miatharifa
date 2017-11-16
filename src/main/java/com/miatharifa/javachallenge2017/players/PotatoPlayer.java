@@ -129,12 +129,26 @@ public class PotatoPlayer extends AbstractPlayer {
 //        }
 
         // Escape if wasn't used
-        armiesToEvacuate.forEach(a -> {
+        armiesToEvacuate.stream().distinct().forEach(a -> {
             System.out.println("Finding new home for " + a.size + " units from " + a.planet.planetID);
-            List<Planet> closestOwnPlanets = this.gameModel.map.getClosestOwnPlanets(a.planet);
-            if (closestOwnPlanets.size() > 0) {
-                Planet newTarget = closestOwnPlanets.get(0);
-                proposedCommands.add(new Command(a, newTarget, a.size).of(ESCAPE, "Evacuating units"));
+            List<Planet> closestEnemyPlanets = this.gameModel.map.getClosestUnownedPlanets(a.planet, PlayerModel.NAME, 100);
+            List<Planet> closestOwnPlanets = this.gameModel.map.getClosestOwnPlanets(a.planet, PlayerModel.NAME);
+
+            List<Double> conquerValues = closestEnemyPlanets.stream().map(x->getPlanetConquerValue(x, a.planet, a.size)).collect(Collectors.toList());
+
+            if (conquerValues.stream().anyMatch(x->x>0)){
+                closestEnemyPlanets.sort(Comparator.comparingDouble(x -> -getPlanetConquerValue(x, a.planet, a.size)));
+                Planet planet = closestEnemyPlanets.get(0);
+                proposedCommands.add(new Command(a, planet, a.size).of(CONQUER, "Evacquering to enemy planet"));
+            } else {
+                if (closestOwnPlanets.size() > 0) {
+                    Planet newTarget = closestOwnPlanets.get(0);
+                    proposedCommands.add(new Command(a, newTarget, a.size).of(ESCAPE, "Evacuating units to own planet"));
+                } else {
+                    closestEnemyPlanets.sort(Comparator.comparingInt(Planet::getTotalArmyCount));
+                    Planet planet = closestEnemyPlanets.get(0);
+                    proposedCommands.add(new Command(a, planet, a.size).of(ESCAPE, "Evacuating to enemy planet"));
+                }
             }
         });
 
@@ -212,6 +226,7 @@ public class PotatoPlayer extends AbstractPlayer {
     }
 
     private double getPlanetConquerValue(Planet targetPlanet, Planet originPlanet, double armySize) {
+        if (armySize == 0) return 0.0;
         if (targetPlanet.movingArmies.stream().anyMatch(x -> PlayerModel.NAME.matches(x.owner))) return -100000000;
         if (targetPlanet.stationedArmies.size() == 1 && targetPlanet.stationedArmies.get(0).owner.equals(PlayerModel.NAME))
             return -100000000;
@@ -220,7 +235,7 @@ public class PotatoPlayer extends AbstractPlayer {
         double timeToFlyThere = targetPlanet.getDistance(originPlanet) / this.gameModel.movementSpeed;
         double enemiesWhenArriving = targetPlanet.getEnemyCountFor(PlayerModel.NAME) + getUnitGrowth(targetPlanet, timeToFlyThere);
         if (enemiesWhenArriving > armySize) return -1000000000;
-        double timeToCapture = getTimeToCapture(enemiesWhenArriving, armySize, ownershipRequired, targetPlanet.radius);
+        double timeToCapture = getTimeToCapture(enemiesWhenArriving, armySize, targetPlanet.owner == null ? 1.0 : 2.0, targetPlanet.radius);
         double timeToFlyAndCapture = timeToFlyThere + timeToCapture;
         double value = getUnitGrowth(targetPlanet, ESTIMATED_PLANET_LIFETIME) - getUnitGrowth(targetPlanet, timeToFlyAndCapture);
         return value;

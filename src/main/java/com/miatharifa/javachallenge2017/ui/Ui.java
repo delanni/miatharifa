@@ -43,7 +43,7 @@ public class Ui {
 
         void init(GameModel description) {
             paintPanel.init(description);
-            repaint();
+//            repaint();
         }
 
         void sendCommand(Command command)  {

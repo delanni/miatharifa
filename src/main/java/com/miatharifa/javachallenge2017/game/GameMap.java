@@ -89,16 +89,16 @@ public class GameMap {
     public List<Planet> getClosestUnownedPlanets(Planet reference, String playerName, int max) {
         return this.planets.values()
                 .stream()
-                .filter(x -> !playerName.equals(x.owner) || x.ownershipRatio < 1.0)
+                .filter(x -> x != reference && (!playerName.equals(x.owner) || x.ownershipRatio < 1.0))
                 .sorted((o1, o2) -> (int) (this.distanceOf(reference, o1) - this.distanceOf(reference, o2)))
                 .limit(max)
                 .collect(Collectors.toList());
     }
 
-    public List<Planet> getClosestOwnPlanets(Planet reference) {
+    public List<Planet> getClosestOwnPlanets(Planet reference, String playerName) {
         return this.planets.values()
                 .stream()
-                .filter(x -> PlayerModel.NAME.equals(x.owner) && x != reference)
+                .filter(x -> playerName.equals(x.owner) && x != reference)
                 .sorted((o1, o2) -> (int) (this.distanceOf(reference, o1) - this.distanceOf(reference, o2)))
                 .collect(Collectors.toList());
     }
