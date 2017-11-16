@@ -13,6 +13,9 @@ import com.miatharifa.javachallenge2017.players.DumbPlayer;
 import com.miatharifa.javachallenge2017.players.PotatoPlayer;
 import com.miatharifa.javachallenge2017.ui.Ui;
 
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 abstract class PlayerClient extends Endpoint implements MessageHandler.Whole<String> {
     private Session session;
     protected Gson gson;
@@ -59,6 +62,7 @@ abstract class PlayerClient extends Endpoint implements MessageHandler.Whole<Str
 
     protected void sendMessage(Command command) {
         try {
+            System.out.println(System.currentTimeMillis() + " - Sending command: " + command);
             session.getAsyncRemote().sendText(this.gson.toJson(command, Command.class));
             if (withUi) {
                 Ui.sendCommand(command);
@@ -79,16 +83,17 @@ abstract class PlayerClient extends Endpoint implements MessageHandler.Whole<Str
 public class PlayerModel extends PlayerClient {
     public static final String NAME = "miathari";
     protected final GameModel gameModel;
+    private long gameStartTime = 0;
 
     public PlayerModel(boolean withUi) {
         super(withUi);
         this.gameModel = new GameModel();
-        this.player = new DumbPlayer(this::sendMessage);
-//        this.player = new PotatoPlayer(this::sendMessage);
+//        this.player = new DumbPlayer(this::sendMessage);
+        this.player = new PotatoPlayer(this::sendMessage);
     }
 
     public void initialize(GameDescription description) {
-        System.out.println("Initialized");
+        System.out.println("Initialized [" + description.internalSchedule + ", " + description.broadcastSchedule + ", " + description.commandSchedule + "]");
         this.gameModel.initialize(description);
         if (withUi) {
             Ui.init(this.gameModel);
@@ -99,7 +104,11 @@ public class PlayerModel extends PlayerClient {
     public void updateState(GameState gameStateUpdate) {
         long lastUpdateAt = System.currentTimeMillis();
         long nextUpdateDue = lastUpdateAt + this.gameModel.broadcastSchedule;
-        System.out.println("Got update for time:" + gameStateUpdate.timeElapsed);
+        if (gameStateUpdate.timeElapsed == 0) {
+            this.gameStartTime = System.currentTimeMillis();
+        }
+        System.out.println(System.currentTimeMillis() + " - Got update for time: "+ gameStateUpdate.timeElapsed + " (" +getEstimatedGameTime() + ") " + (getEstimatedGameTime() - gameStateUpdate.timeElapsed));
+
 
         this.gameModel.update(gameStateUpdate);
         this.player.updateStateRoundStart(this.gameModel);
@@ -109,21 +118,27 @@ public class PlayerModel extends PlayerClient {
 
         this.gameModel.reset();
 
+        System.out.println("Answered in " + (System.currentTimeMillis() - lastUpdateAt) + "ms");
+
         if (withUi) {
             Ui.refresh(this.gameModel);
 
-            while((nextUpdateDue - System.currentTimeMillis()) > this.gameModel.internalSchedule && this.gameModel.simulationTicksRemaining > 0) {
-                try {
-                    Thread.sleep(this.gameModel.internalSchedule-5);
-                    this.gameModel.tick();
-                    Ui.refresh(this.gameModel);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
+//            while((nextUpdateDue - System.currentTimeMillis()) > this.gameModel.internalSchedule && this.gameModel.simulationTicksRemaining > 0) {
+//                try {
+//                    Thread.sleep(this.gameModel.internalSchedule-5);
+//                    this.gameModel.tick();
+//                    Ui.refresh(this.gameModel);
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//            }
             System.out.println("Current time is : " + System.currentTimeMillis() + " time until next update: " + (nextUpdateDue - System.currentTimeMillis()));
         }
 
+    }
+
+    private long getEstimatedGameTime() {
+        return System.currentTimeMillis() - this.gameStartTime;
     }
 
     public void kill() {

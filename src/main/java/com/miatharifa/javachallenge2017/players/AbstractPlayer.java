@@ -3,6 +3,7 @@ package com.miatharifa.javachallenge2017.players;
 import com.miatharifa.javachallenge2017.game.GameModel;
 import com.miatharifa.javachallenge2017.models.*;
 
+import java.util.Objects;
 import java.util.logging.Logger;
 
 public abstract class AbstractPlayer {
@@ -21,9 +22,10 @@ public abstract class AbstractPlayer {
     }
 
     protected void sendCommand(Command command) {
-        System.out.println(command.toString());
-        this.commanderInterface.sendCommand(command);
-        this.gameModel.applyCommand(command);
+        if (!Objects.equals(command.moveFrom, command.moveTo)) {
+            this.commanderInterface.sendCommand(command);
+            this.gameModel.applyCommand(command);
+        }
     }
     public abstract void updateStateRoundStart(GameModel gameModel);
     public abstract void updateStateRoundEnd(GameModel gameModel);

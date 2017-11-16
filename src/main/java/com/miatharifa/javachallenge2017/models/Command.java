@@ -15,6 +15,17 @@ public class Command {
     @Expose
     public Integer armySize;
 
+    public Command(StationedArmy army, Planet planet, int size) {
+        this.moveFrom = army.planet.planetID;
+        this.moveTo = planet.planetID;
+        this.armySize = size;
+    }
+    public Command(StationedArmy army, Planet planet, double size) {
+        this.moveFrom = army.planet.planetID;
+        this.moveTo = planet.planetID;
+        this.armySize = (int)size;
+    }
+
     @Override
     public String toString() {
         return this.armySize + " [" + this.moveFrom + " -> " + this.moveTo + "]";

@@ -53,6 +53,7 @@ public class Main {
             while(playerModel.state != KILLED) {
                 Thread.sleep(10000);
             }
+            System.out.println("Final score" + playerModel.player.gameModel.standings);
             System.exit(0);
 
         } catch (Exception e) {

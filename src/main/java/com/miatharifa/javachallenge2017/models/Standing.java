@@ -15,5 +15,12 @@ public class Standing {
     @Expose
     public String userID;
 
-
+    @Override
+    public String toString() {
+        return "Standing{" +
+                "score=" + score +
+                ", strength=" + strength +
+                ", userID='" + userID + '\'' +
+                '}';
+    }
 }
