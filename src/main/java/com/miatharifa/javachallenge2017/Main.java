@@ -22,7 +22,7 @@ public class Main {
     private static final Logger log = LoggerFactory.getLogger(Main.class);
     public static void main(String[] args) {
         try {
-            String token = args[0];
+            String token = "wGgwGUGV71WG";// args[0];
             String auth = "miathari:" + token;
             System.out.println("Connecting with " + auth);
             WebSocketContainer webSocket = ContainerProvider.getWebSocketContainer();
